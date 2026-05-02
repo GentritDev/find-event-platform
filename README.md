@@ -67,7 +67,7 @@ npm install
 
 **Windows PowerShell**
 ```powershell
-git clone https://github.com/GentritSE/find-event-platform.git
+git clone https://github.com/GentritDev/find-event-platform.git
 Set-Location find-event-platform
 npm install
 ```
