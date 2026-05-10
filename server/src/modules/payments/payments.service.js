@@ -26,11 +26,10 @@ class PaymentsService {
     }
 
     const amount = parseFloat(event.price_eur);
-    const currency = 'USD';
-    const returnUrl = `${env.CLIENT_URL}/payment/success`;
-    const cancelUrl = `${env.CLIENT_URL}/payment/cancel`;
+    const currency = 'EUR';
 
-    const paypalOrder = await paypal.createOrder(amount, currency, returnUrl, cancelUrl);
+    // For SDK v6, we don't need return URLs as the SDK handles the flow
+    const paypalOrder = await paypal.createOrderV6(amount, currency);
 
     const order = await paymentsRepository.createOrder({
       user_id: userId,
@@ -40,12 +39,9 @@ class PaymentsService {
       provider_order_id: paypalOrder.id,
     });
 
-    const approveLink = paypalOrder.links.find((l) => l.rel === 'approve');
-
     return {
       order,
       paypalOrderId: paypalOrder.id,
-      approveUrl: approveLink ? approveLink.href : null,
     };
   }
 
@@ -87,6 +83,52 @@ class PaymentsService {
     await eventsRepository.incrementTicketsSold(paidOrder.event_id);
 
     return { order: paidOrder, ticket };
+  }
+
+  async createFreeTicket(userId, { event_id }) {
+    const event = await eventsRepository.findById(event_id);
+    if (!event) {
+      const err = new Error('Event not found');
+      err.status = 404;
+      throw err;
+    }
+    if (event.status !== 'published') {
+      const err = new Error('Event is not available');
+      err.status = 400;
+      throw err;
+    }
+    if (parseFloat(event.price_eur) !== 0) {
+      const err = new Error('This is not a free event');
+      err.status = 400;
+      throw err;
+    }
+    if (event.tickets_sold >= event.capacity) {
+      const err = new Error('Event is sold out');
+      err.status = 400;
+      throw err;
+    }
+
+    // Create a free order (no payment required)
+    const order = await paymentsRepository.createOrder({
+      user_id: userId,
+      event_id,
+      amount_eur: 0,
+      currency: 'EUR',
+      payment_status: 'paid', // Mark as paid immediately for free events
+      provider_order_id: null,
+    });
+
+    // Generate ticket immediately for free events
+    const ticket = await ticketsService.generateTicket({
+      order_id: order.id,
+      user_id: userId,
+      event_id,
+    });
+
+    // Increment tickets sold
+    await eventsRepository.incrementTicketsSold(event_id);
+
+    return { order, ticket };
   }
 
   async getUserOrders(userId) {

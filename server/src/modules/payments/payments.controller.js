@@ -21,6 +21,15 @@ class PaymentsController {
     }
   }
 
+  async createFreeTicket(req, res, next) {
+    try {
+      const result = await paymentsService.createFreeTicket(req.user.id, req.body);
+      return res.status(201).json({ success: true, data: result });
+    } catch (err) {
+      next(err);
+    }
+  }
+
   async getUserOrders(req, res, next) {
     try {
       const orders = await paymentsService.getUserOrders(req.user.id);

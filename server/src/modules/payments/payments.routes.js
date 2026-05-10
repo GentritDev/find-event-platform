@@ -14,6 +14,10 @@ router.post('/paypal/capture-order', (req, res, next) =>
   paymentsController.captureOrder(req, res, next)
 );
 
+router.post('/create-free-ticket', (req, res, next) =>
+  paymentsController.createFreeTicket(req, res, next)
+);
+
 router.get('/orders', (req, res, next) =>
   paymentsController.getUserOrders(req, res, next)
 );

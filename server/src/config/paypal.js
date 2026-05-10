@@ -4,6 +4,22 @@ const env = require('./env');
 
 const PAYPAL_BASE_URL = env.PAYPAL_BASE_URL;
 
+function buildPayPalError(prefix, errData) {
+  const issue = errData?.details?.[0]?.issue;
+  const description = errData?.details?.[0]?.description || errData?.message;
+  const debugId = errData?.debug_id;
+
+  const parts = [prefix];
+  if (issue) parts.push(`issue=${issue}`);
+  if (description) parts.push(`description=${description}`);
+  if (debugId) parts.push(`debug_id=${debugId}`);
+
+  const err = new Error(parts.join(' | '));
+  err.status = 422;
+  err.paypal = errData;
+  return err;
+}
+
 async function getAccessToken() {
   const credentials = Buffer.from(
     `${env.PAYPAL_CLIENT_ID}:${env.PAYPAL_CLIENT_SECRET}`
@@ -54,7 +70,38 @@ async function createOrder(amount, currency = 'USD', returnUrl, cancelUrl) {
 
   if (!response.ok) {
     const errData = await response.json();
-    throw new Error(`PayPal create order error: ${JSON.stringify(errData)}`);
+    throw buildPayPalError('PayPal create order failed', errData);
+  }
+
+  return response.json();
+}
+
+// SDK v6 version - doesn't need return URLs as SDK handles the flow
+async function createOrderV6(amount, currency = 'EUR') {
+  const accessToken = await getAccessToken();
+
+  const response = await fetch(`${PAYPAL_BASE_URL}/v2/checkout/orders`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      intent: 'CAPTURE',
+      purchase_units: [
+        {
+          amount: {
+            currency_code: currency,
+            value: parseFloat(amount).toFixed(2),
+          },
+        },
+      ],
+    }),
+  });
+
+  if (!response.ok) {
+    const errData = await response.json();
+    throw buildPayPalError('PayPal create order failed', errData);
   }
 
   return response.json();
@@ -81,10 +128,10 @@ async function captureOrder(orderId) {
 
   if (!response.ok) {
     const errData = await response.json();
-    throw new Error(`PayPal capture error: ${JSON.stringify(errData)}`);
+    throw buildPayPalError('PayPal capture failed', errData);
   }
 
   return response.json();
 }
 
-module.exports = { createOrder, captureOrder };
+module.exports = { createOrder, createOrderV6, captureOrder };

@@ -1,11 +1,12 @@
 import { useParams, useNavigate } from 'react-router-dom'
-import { useQuery, useMutation } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { eventsService } from '../../services/eventsService'
 import { paymentsService } from '../../services/paymentsService'
 import { useAuth } from '../../hooks/useAuth'
 import LoadingSpinner from '../../components/shared/LoadingSpinner'
+import PayPalCheckout from '../../components/payment/PayPalCheckout'
 import toast from 'react-hot-toast'
-import { Calendar, MapPin, Users, Tag, ArrowLeft, CreditCard, AlertCircle } from 'lucide-react'
+import { Calendar, MapPin, Users, Tag, ArrowLeft, AlertCircle } from 'lucide-react'
 
 function formatDate(dateStr) {
   return new Date(dateStr).toLocaleString('en-US', {
@@ -23,17 +24,19 @@ export default function EventDetailPage() {
     queryFn: () => eventsService.getEvent(id),
   })
 
-  const purchaseMutation = useMutation({
-    mutationFn: () => paymentsService.createPayPalOrder({ event_id: id }),
-    onSuccess: (data) => {
-      if (data?.approveUrl) {
-        window.location.href = data.approveUrl
-      } else {
-        toast.error('Failed to get PayPal checkout URL')
-      }
-    },
-    onError: (err) => toast.error(err.message),
-  })
+  const handlePaymentSuccess = (result) => {
+    navigate('/payment/success', { state: { ticket: result.ticket } })
+  }
+
+  const handleGetFreeTicket = async () => {
+    try {
+      const result = await paymentsService.createFreeTicket({ event_id: id })
+      toast.success('Free ticket acquired!')
+      navigate('/tickets/my')
+    } catch (err) {
+      toast.error(err.message || 'Failed to get free ticket')
+    }
+  }
 
   if (isLoading) return <LoadingSpinner size="xl" className="py-32" />
   if (error) return (
@@ -136,20 +139,20 @@ export default function EventDetailPage() {
             {event.status === 'published' && !soldOut && (
               <>
                 {user ? (
-                  <button
-                    onClick={() => purchaseMutation.mutate()}
-                    disabled={purchaseMutation.isPending}
-                    className="btn-primary w-full justify-center text-base py-3"
-                  >
-                    {purchaseMutation.isPending ? (
-                      <LoadingSpinner size="sm" />
-                    ) : (
-                      <>
-                        <CreditCard className="w-5 h-5" />
-                        {isFree ? 'Get Free Ticket' : 'Buy with PayPal'}
-                      </>
-                    )}
-                  </button>
+                  isFree ? (
+                    <button
+                      onClick={handleGetFreeTicket}
+                      className="btn-primary w-full justify-center text-base py-3"
+                    >
+                      Get Free Ticket
+                    </button>
+                  ) : (
+                    <PayPalCheckout 
+                      eventId={id} 
+                      eventPrice={event.price_eur}
+                      onSuccess={handlePaymentSuccess}
+                    />
+                  )
                 ) : (
                   <button
                     onClick={() => navigate('/login')}

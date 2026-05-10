@@ -3,12 +3,12 @@
 const db = require('../../config/db');
 
 class PaymentsRepository {
-  async createOrder({ user_id, event_id, amount_eur, currency, provider_order_id }) {
+  async createOrder({ user_id, event_id, amount_eur, currency, provider_order_id, payment_status = 'pending' }) {
     const { rows } = await db.query(
       `INSERT INTO orders (user_id, event_id, amount_eur, currency, provider, payment_status, provider_order_id)
-       VALUES ($1, $2, $3, $4, 'paypal', 'pending', $5)
+       VALUES ($1, $2, $3, $4, 'paypal', $5, $6)
        RETURNING *`,
-      [user_id, event_id, amount_eur, currency, provider_order_id]
+      [user_id, event_id, amount_eur, currency, payment_status, provider_order_id]
     );
     return rows[0];
   }
