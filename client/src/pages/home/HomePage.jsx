@@ -1,11 +1,13 @@
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { useAuth } from "../../hooks/useAuth";
 import { eventsService } from "../../services/eventsService";
 import EventCard from "../../components/shared/EventCard";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import { ArrowRight, Zap, Shield, Globe } from "lucide-react";
 
 export default function HomePage() {
+  const { user } = useAuth();
   const { data, isLoading } = useQuery({
     queryKey: ["events", "featured"],
     queryFn: () => eventsService.getEvents({ status: "published", limit: 6 }),
@@ -46,9 +48,14 @@ export default function HomePage() {
                 Browse Events
                 <ArrowRight className="w-5 h-5" />
               </Link>
-              <Link to="/register" className="btn-outline text-base px-8 py-3">
-                Create Account
-              </Link>
+              {!user && (
+                <Link
+                  to="/register"
+                  className="btn-outline text-base px-8 py-3"
+                >
+                  Create Account
+                </Link>
+              )}
             </div>
           </div>
         </div>
@@ -128,21 +135,23 @@ export default function HomePage() {
       </section>
 
       {/* CTA */}
-      <section className="py-16 border-t border-dark-600">
-        <div className="page-container">
-          <div className="card p-10 text-center bg-gradient-to-br from-dark-700 to-dark-800 border-accent-purple/20">
-            <h2 className="text-2xl font-bold mb-3">Are you an Organizer?</h2>
-            <p className="text-slate-400 mb-6 max-w-lg mx-auto">
-              Create and manage events, track ticket sales, and verify attendees
-              with QR scanning.
-            </p>
-            <Link to="/register?role=organizer" className="btn-primary">
-              Start as Organizer
-              <ArrowRight className="w-4 h-4" />
-            </Link>
+      {!user && (
+        <section className="py-16 border-t border-dark-600">
+          <div className="page-container">
+            <div className="card p-10 text-center bg-gradient-to-br from-dark-700 to-dark-800 border-accent-purple/20">
+              <h2 className="text-2xl font-bold mb-3">Are you an Organizer?</h2>
+              <p className="text-slate-400 mb-6 max-w-lg mx-auto">
+                Create and manage events, track ticket sales, and verify
+                attendees with QR scanning.
+              </p>
+              <Link to="/register?role=organizer" className="btn-primary">
+                Start as Organizer
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
     </div>
   );
 }
