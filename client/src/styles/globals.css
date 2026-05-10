@@ -16,6 +16,42 @@
   --text-input: rgb(15 23 42);
   --text-label: rgb(51 65 85);
   --text-btn-secondary: rgb(30 41 59);
+
+  /* Badge colors for light mode */
+  --badge-published-bg: rgb(220 252 231);
+  --badge-published-text: rgb(22 163 74);
+  --badge-published-border: rgb(187 247 208);
+
+  --badge-draft-bg: rgb(254 250 235);
+  --badge-draft-text: rgb(180 83 9);
+  --badge-draft-border: rgb(253 224 71);
+
+  --badge-cancelled-bg: rgb(254 242 242);
+  --badge-cancelled-text: rgb(220 38 38);
+  --badge-cancelled-border: rgb(252 165 165);
+
+  --status-published-bg: rgb(210, 247, 223);
+  --status-published-text: rgb(22 163 74);
+
+  --status-draft-bg: rgb(254, 226, 195);
+  --status-draft-text: rgb(120 53 15);
+
+  --status-cancelled-bg: rgb(254 226 226);
+  --status-cancelled-text: rgb(185 28 28);
+
+  --role-user-bg: rgb(191 219 254);
+  --role-user-text: rgb(30 64 175);
+  --role-user-border: rgb(147 197 253);
+
+  --role-organizer-bg: rgb(221, 213, 254);
+  --role-organizer-text: rgb(124 58 237);
+  --role-organizer-border: rgb(189, 133, 253);
+
+  --role-admin-bg: rgb(254 202 202);
+  --role-admin-text: rgb(185 28 28);
+  --role-admin-border: rgb(252 165 165);
+
+  --role-bar-track-bg: rgb(226 232 240);
 }
 
 html.dark {
@@ -31,6 +67,42 @@ html.dark {
   --text-input: rgb(241 245 249);
   --text-label: rgb(203 213 225);
   --text-btn-secondary: rgb(226 232 240);
+
+  /* Badge colors for dark mode */
+  --badge-published-bg: rgb(5 46 22);
+  --badge-published-text: rgb(34 197 94);
+  --badge-published-border: rgb(20 83 45);
+
+  --badge-draft-bg: rgb(54 41 7);
+  --badge-draft-text: rgb(250 204 21);
+  --badge-draft-border: rgb(113 63 18);
+
+  --badge-cancelled-bg: rgb(127 29 29);
+  --badge-cancelled-text: rgb(248 113 113);
+  --badge-cancelled-border: rgb(153 27 27);
+
+  --status-published-bg: rgb(18, 34, 29);
+  --status-published-text: rgb(34 197 94);
+
+  --status-draft-bg: rgb(120 53 15 / 0.2);
+  --status-draft-text: rgb(250 204 21);
+
+  --status-cancelled-bg: rgb(127 29 29 / 0.2);
+  --status-cancelled-text: rgb(248 113 113);
+
+  --role-user-bg: rgba(30, 59, 138, 0.409);
+  --role-user-text: rgb(96 165 250);
+  --role-user-border: rgb(30 58 138);
+
+  --role-organizer-bg: rgba(124, 58, 237, 0.203);
+  --role-organizer-text: rgb(192 132 252);
+  --role-organizer-border: rgb(124 58 237);
+
+  --role-admin-bg: rgba(220, 38, 38, 0.203);
+  --role-admin-text: rgb(248 113 113);
+  --role-admin-border: rgb(153 27 27);
+
+  --role-bar-track-bg: rgb(39 39 54);
 }
 
 @layer base {
@@ -68,17 +140,37 @@ html.dark {
 /* ── Text colour overrides (light = default, dark = restore) ─── */
 /* In light mode, slate-xxx utilities would render near-white text, */
 /* so we override them to dark by default and restore in dark mode. */
-.text-slate-100 { color: rgb(15 23 42); }
-.text-slate-200 { color: rgb(30 41 59); }
-.text-slate-300 { color: rgb(51 65 85); }
-.text-slate-400 { color: rgb(71 85 105); }
-.text-slate-500 { color: rgb(100 116 139); }
+.text-slate-100 {
+  color: rgb(15 23 42);
+}
+.text-slate-200 {
+  color: rgb(30 41 59);
+}
+.text-slate-300 {
+  color: rgb(51 65 85);
+}
+.text-slate-400 {
+  color: rgb(71 85 105);
+}
+.text-slate-500 {
+  color: rgb(100 116 139);
+}
 
-html.dark .text-slate-100 { color: rgb(241 245 249); }
-html.dark .text-slate-200 { color: rgb(226 232 240); }
-html.dark .text-slate-300 { color: rgb(203 213 225); }
-html.dark .text-slate-400 { color: rgb(148 163 184); }
-html.dark .text-slate-500 { color: rgb(100 116 139); }
+html.dark .text-slate-100 {
+  color: rgb(241 245 249);
+}
+html.dark .text-slate-200 {
+  color: rgb(226 232 240);
+}
+html.dark .text-slate-300 {
+  color: rgb(203 213 225);
+}
+html.dark .text-slate-400 {
+  color: rgb(148 163 184);
+}
+html.dark .text-slate-500 {
+  color: rgb(100 116 139);
+}
 
 @layer components {
   .btn-primary {
@@ -109,19 +201,84 @@ html.dark .text-slate-500 { color: rgb(100 116 139); }
   }
 
   .badge {
-    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold;
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border;
   }
 
   .badge-published {
-    @apply badge bg-green-900/50 text-green-400 border border-green-800;
+    /* @apply badge bg-green-900/50 text-green-400 border border-green-800; */
+    @apply badge;
+    background-color: var(--badge-published-bg);
+    color: var(--badge-published-text);
+    border-color: var(--badge-published-border);
   }
 
   .badge-draft {
-    @apply badge bg-yellow-900/50 text-yellow-400 border border-yellow-800;
+    /* @apply badge bg-yellow-900/50 text-yellow-400 border border-yellow-800; */
+    @apply badge;
+    background-color: var(--badge-draft-bg);
+    color: var(--badge-draft-text);
+    border-color: var(--badge-draft-border);
   }
 
   .badge-cancelled {
-    @apply badge bg-red-900/50 text-red-400 border border-red-800;
+    /* @apply badge bg-red-900/50 text-red-400 border border-red-800; */
+    @apply badge;
+    background-color: var(--badge-cancelled-bg);
+    color: var(--badge-cancelled-text);
+    border-color: var(--badge-cancelled-border);
+  }
+
+  .status-pill {
+    @apply rounded-lg px-3 py-2 flex items-center justify-between text-sm font-medium;
+    border: 1px solid transparent;
+  }
+  .status-pill.published {
+    background-color: var(--status-published-bg);
+    color: var(--status-published-text);
+  }
+  .status-pill.draft {
+    background-color: var(--status-draft-bg);
+    color: var(--status-draft-text);
+  }
+  .status-pill.cancelled {
+    background-color: var(--status-cancelled-bg);
+    color: var(--status-cancelled-text);
+  }
+
+  .role-pill {
+    @apply badge;
+    background-color: var(--role-user-bg);
+    color: var(--role-user-text);
+    border-color: var(--role-user-border);
+  }
+  .role-pill.organizer {
+    background-color: var(--role-organizer-bg);
+    color: var(--role-organizer-text);
+    border-color: var(--role-organizer-border);
+  }
+  .role-pill.admin {
+    background-color: var(--role-admin-bg);
+    color: var(--role-admin-text);
+    border-color: var(--role-admin-border);
+  }
+
+  .role-bar {
+    @apply h-2 rounded-full overflow-hidden;
+    background-color: var(--status-draft-bg);
+  }
+  .role-bar.user {
+    background-color: var(--role-user-border);
+  }
+  .role-bar.organizer {
+    background-color: var(--role-organizer-border);
+  }
+  .role-bar.admin {
+    background-color: var(--role-admin-border);
+  }
+
+  .role-track {
+    @apply rounded-full overflow-hidden;
+    background-color: var(--role-bar-track-bg);
   }
 
   .page-container {
