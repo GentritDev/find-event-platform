@@ -4,8 +4,15 @@ import { paymentsService } from "../../services/paymentsService";
 import LoadingSpinner from "../shared/LoadingSpinner";
 import toast from "react-hot-toast";
 import { AlertCircle } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { ticketsService } from "../../services/ticketsService";
 
-export default function PayPalCheckout({ eventId, eventPrice, onSuccess }) {
+export default function PayPalCheckout({
+  eventId,
+  eventPrice,
+  onSuccess,
+  buttonText,
+}) {
   const navigate = useNavigate();
   const [isInitializing, setIsInitializing] = useState(true);
   const [error, setError] = useState(null);
@@ -94,6 +101,15 @@ export default function PayPalCheckout({ eventId, eventPrice, onSuccess }) {
       setIsProcessing(false);
     }
   };
+
+  const { data: myTickets = [] } = useQuery({
+    queryKey: ["my-tickets"],
+    queryFn: ticketsService.getMyTickets,
+  });
+
+  const alreadyPurchased = myTickets.some(
+    (ticket) => ticket.event_id === eventId && ticket.status !== "cancelled",
+  );
 
   const handleStartPayment = async () => {
     if (
@@ -291,7 +307,11 @@ export default function PayPalCheckout({ eventId, eventPrice, onSuccess }) {
         disabled={(!isMockMode && (!isReady || isInitializing)) || isProcessing}
         className="btn-primary w-full justify-center text-base py-3 disabled:opacity-60 disabled:cursor-not-allowed"
       >
-        {isMockMode ? "Complete Demo Purchase" : "Pay with PayPal"}
+        {alreadyPurchased
+          ? "Buy More Tickets"
+          : isMockMode
+            ? buttonText || "Complete Demo Purchase"
+            : "Pay with PayPal"}
       </button>
       {showDemoModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-100/80 dark:bg-slate-950/80 px-4 py-6">

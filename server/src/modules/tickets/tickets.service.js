@@ -63,7 +63,28 @@ class TicketsService {
       }),
     );
 
-    return ticketsWithQR;
+    const groupedByEvent = new Map();
+    for (const ticket of ticketsWithQR) {
+      const eventId = ticket.event_id;
+      const existing = groupedByEvent.get(eventId);
+      if (existing) {
+        existing.quantity += 1;
+        existing.ticket_ids.push(ticket.id);
+        existing.qr_tokens.push(ticket.qr_token);
+        if (!existing.qr_code_data_url && ticket.qr_code_data_url) {
+          existing.qr_code_data_url = ticket.qr_code_data_url;
+        }
+      } else {
+        groupedByEvent.set(eventId, {
+          ...ticket,
+          quantity: 1,
+          ticket_ids: [ticket.id],
+          qr_tokens: [ticket.qr_token],
+        });
+      }
+    }
+
+    return Array.from(groupedByEvent.values());
   }
 
   async verifyQRToken(qr_token, verifier_id) {

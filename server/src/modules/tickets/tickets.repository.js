@@ -1,6 +1,6 @@
-'use strict';
+"use strict";
 
-const db = require('../../config/db');
+const db = require("../../config/db");
 
 class TicketsRepository {
   async create({ order_id, user_id, event_id, qr_token }) {
@@ -8,7 +8,7 @@ class TicketsRepository {
       `INSERT INTO tickets (order_id, user_id, event_id, qr_token, status)
        VALUES ($1, $2, $3, $4, 'active')
        RETURNING *`,
-      [order_id, user_id, event_id, qr_token]
+      [order_id, user_id, event_id, qr_token],
     );
     return rows[0];
   }
@@ -20,7 +20,7 @@ class TicketsRepository {
        JOIN events e ON t.event_id = e.id
        JOIN users u ON t.user_id = u.id
        WHERE t.qr_token = $1 LIMIT 1`,
-      [qr_token]
+      [qr_token],
     );
     return rows[0] || null;
   }
@@ -32,9 +32,17 @@ class TicketsRepository {
        JOIN events e ON t.event_id = e.id
        WHERE t.user_id = $1
        ORDER BY t.created_at DESC`,
-      [user_id]
+      [user_id],
     );
     return rows;
+  }
+
+  async existsByUserIdAndEventId(user_id, event_id) {
+    const { rows } = await db.query(
+      `SELECT 1 FROM tickets WHERE user_id = $1 AND event_id = $2 LIMIT 1`,
+      [user_id, event_id],
+    );
+    return rows.length > 0;
   }
 
   async findByEventId(event_id) {
@@ -44,7 +52,7 @@ class TicketsRepository {
        JOIN users u ON t.user_id = u.id
        WHERE t.event_id = $1
        ORDER BY t.created_at DESC`,
-      [event_id]
+      [event_id],
     );
     return rows;
   }
@@ -54,7 +62,7 @@ class TicketsRepository {
       `UPDATE tickets SET status = 'used', checked_in_at = NOW(), checked_in_by = $1
        WHERE id = $2 AND status = 'active'
        RETURNING *`,
-      [checked_in_by, id]
+      [checked_in_by, id],
     );
     return rows[0] || null;
   }

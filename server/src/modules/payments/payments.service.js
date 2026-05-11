@@ -2,12 +2,25 @@
 
 const paymentsRepository = require("./payments.repository");
 const eventsRepository = require("../events/events.repository");
+const ticketsRepository = require("../tickets/tickets.repository");
 const ticketsService = require("../tickets/tickets.service");
 const paypal = require("../../config/paypal");
 const env = require("../../config/env");
 const crypto = require("crypto");
 
 class PaymentsService {
+  async _ensureNotAlreadyPurchased(userId, event_id) {
+    const alreadyPurchased = await ticketsRepository.existsByUserIdAndEventId(
+      userId,
+      event_id,
+    );
+    if (alreadyPurchased) {
+      const err = new Error("You already purchased a ticket for this event");
+      err.status = 400;
+      throw err;
+    }
+  }
+
   async createDemoPurchase(userId, { event_id, quantity = 1 }) {
     const event = await eventsRepository.findById(event_id);
     if (!event) {
@@ -68,6 +81,45 @@ class PaymentsService {
       quantity,
       demoMode: true,
     };
+  }
+
+  async createFreeTicket(userId, { event_id }) {
+    const event = await eventsRepository.findById(event_id);
+    if (!event) {
+      const err = new Error("Event not found");
+      err.status = 404;
+      throw err;
+    }
+    if (parseFloat(event.price_eur) !== 0) {
+      const err = new Error("Event is not free");
+      err.status = 400;
+      throw err;
+    }
+    if (event.status !== "published") {
+      const err = new Error("Event is not available for purchase");
+      err.status = 400;
+      throw err;
+    }
+
+    const order = await paymentsRepository.createOrder({
+      user_id: userId,
+      event_id,
+      amount_eur: 0,
+      currency: "EUR",
+      provider: "free",
+      provider_order_id: `FREE-${crypto.randomUUID()}`,
+      payment_status: "paid",
+    });
+
+    const ticket = await ticketsService.generateTicket({
+      order_id: order.id,
+      user_id,
+      event_id,
+    });
+
+    await eventsRepository.incrementTicketsSold(event_id);
+
+    return { order, ticket, freeMode: true };
   }
 
   async createPayPalOrder(userId, { event_id }) {
