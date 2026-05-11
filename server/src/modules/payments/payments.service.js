@@ -1,33 +1,42 @@
-'use strict';
+"use strict";
 
-const paymentsRepository = require('./payments.repository');
-const eventsRepository = require('../events/events.repository');
-const ticketsService = require('../tickets/tickets.service');
-const paypal = require('../../config/paypal');
-const env = require('../../config/env');
-const crypto = require('crypto');
+const paymentsRepository = require("./payments.repository");
+const eventsRepository = require("../events/events.repository");
+const ticketsService = require("../tickets/tickets.service");
+const paypal = require("../../config/paypal");
+const env = require("../../config/env");
+const crypto = require("crypto");
 
 class PaymentsService {
-  async createDemoPurchase(userId, { event_id }) {
+  async createDemoPurchase(userId, { event_id, quantity = 1 }) {
     const event = await eventsRepository.findById(event_id);
     if (!event) {
-      const err = new Error('Event not found');
+      const err = new Error("Event not found");
       err.status = 404;
       throw err;
     }
-    if (event.status !== 'published') {
-      const err = new Error('Event is not available for purchase');
-      err.status = 400;
-      throw err;
-    }
-    if (event.tickets_sold >= event.capacity) {
-      const err = new Error('Event is sold out');
+    if (event.status !== "published") {
+      const err = new Error("Event is not available for purchase");
       err.status = 400;
       throw err;
     }
 
-    const amount = parseFloat(event.price_eur);
-    const currency = 'EUR';
+    quantity = parseInt(quantity, 10) || 1;
+    if (quantity < 1) {
+      const err = new Error("Quantity must be at least 1");
+      err.status = 400;
+      throw err;
+    }
+
+    if (event.tickets_sold + quantity > event.capacity) {
+      const err = new Error("Not enough available tickets for that quantity");
+      err.status = 400;
+      throw err;
+    }
+
+    const unitPrice = parseFloat(event.price_eur);
+    const amount = unitPrice * quantity;
+    const currency = "EUR";
     const demoOrderId = `DEMO-${crypto.randomUUID()}`;
 
     const order = await paymentsRepository.createOrder({
@@ -35,42 +44,52 @@ class PaymentsService {
       event_id,
       amount_eur: amount,
       currency,
-      provider: 'demo',
+      provider: "demo",
       provider_order_id: demoOrderId,
-      payment_status: 'paid',
+      payment_status: "paid",
     });
 
-    const ticket = await ticketsService.generateTicket({
-      order_id: order.id,
-      user_id: userId,
-      event_id,
-    });
+    const tickets = [];
+    for (let i = 0; i < quantity; i += 1) {
+      const ticket = await ticketsService.generateTicket({
+        order_id: order.id,
+        user_id: userId,
+        event_id,
+      });
+      tickets.push(ticket);
+    }
 
-    await eventsRepository.incrementTicketsSold(event_id);
+    await eventsRepository.incrementTicketsSold(event_id, quantity);
 
-    return { order, ticket, demoMode: true };
+    return {
+      order,
+      ticket: tickets[0],
+      tickets,
+      quantity,
+      demoMode: true,
+    };
   }
 
   async createPayPalOrder(userId, { event_id }) {
     const event = await eventsRepository.findById(event_id);
     if (!event) {
-      const err = new Error('Event not found');
+      const err = new Error("Event not found");
       err.status = 404;
       throw err;
     }
-    if (event.status !== 'published') {
-      const err = new Error('Event is not available for purchase');
+    if (event.status !== "published") {
+      const err = new Error("Event is not available for purchase");
       err.status = 400;
       throw err;
     }
     if (event.tickets_sold >= event.capacity) {
-      const err = new Error('Event is sold out');
+      const err = new Error("Event is sold out");
       err.status = 400;
       throw err;
     }
 
     const amount = parseFloat(event.price_eur);
-    const currency = 'EUR';
+    const currency = "EUR";
 
     const paypalOrder = await paypal.createOrderV6(amount, currency);
 
@@ -82,7 +101,7 @@ class PaymentsService {
       provider_order_id: paypalOrder.id,
     });
 
-    const approveLink = paypalOrder.links.find((l) => l.rel === 'approve');
+    const approveLink = paypalOrder.links.find((l) => l.rel === "approve");
 
     return {
       order,
@@ -93,8 +112,9 @@ class PaymentsService {
 
   async capturePayPalOrder(userId, { paypal_order_id }) {
     if (env.PAYPAL_MOCK_MODE) {
-      const order = await paymentsRepository.findOrderByProviderId(paypal_order_id);
-      if (order && order.payment_status === 'paid') {
+      const order =
+        await paymentsRepository.findOrderByProviderId(paypal_order_id);
+      if (order && order.payment_status === "paid") {
         const ticket = await ticketsService.generateTicket({
           order_id: order.id,
           user_id: userId,
@@ -105,19 +125,20 @@ class PaymentsService {
       return { order, demoMode: true };
     }
 
-    const order = await paymentsRepository.findOrderByProviderId(paypal_order_id);
+    const order =
+      await paymentsRepository.findOrderByProviderId(paypal_order_id);
     if (!order) {
-      const err = new Error('Order not found');
+      const err = new Error("Order not found");
       err.status = 404;
       throw err;
     }
     if (order.user_id !== userId) {
-      const err = new Error('Forbidden');
+      const err = new Error("Forbidden");
       err.status = 403;
       throw err;
     }
-    if (order.payment_status === 'paid') {
-      return { order, message: 'Already paid' };
+    if (order.payment_status === "paid") {
+      return { order, message: "Already paid" };
     }
 
     let captureData;
@@ -128,8 +149,12 @@ class PaymentsService {
       throw err;
     }
 
-    const captureId = captureData.purchase_units?.[0]?.payments?.captures?.[0]?.id;
-    const paidOrder = await paymentsRepository.markOrderPaid(order.id, captureId);
+    const captureId =
+      captureData.purchase_units?.[0]?.payments?.captures?.[0]?.id;
+    const paidOrder = await paymentsRepository.markOrderPaid(
+      order.id,
+      captureId,
+    );
 
     // Generate ticket after successful payment
     const ticket = await ticketsService.generateTicket({

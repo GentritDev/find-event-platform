@@ -1,20 +1,25 @@
-'use strict';
+"use strict";
 
-const ticketsRepository = require('./tickets.repository');
-const { generateQRToken, generateQRCodeDataURL } = require('../../utils/qr');
-const notificationsService = require('../notifications/notifications.service');
-const { sendTicketConfirmationEmail } = require('../../config/mail');
-const authRepository = require('../auth/auth.repository');
-const eventsRepository = require('../events/events.repository');
+const ticketsRepository = require("./tickets.repository");
+const { generateQRToken, generateQRCodeDataURL } = require("../../utils/qr");
+const notificationsService = require("../notifications/notifications.service");
+const { sendTicketConfirmationEmail } = require("../../config/mail");
+const authRepository = require("../auth/auth.repository");
+const eventsRepository = require("../events/events.repository");
 
 class TicketsService {
   async generateTicket({ order_id, user_id, event_id }) {
     const qr_token = generateQRToken();
-    const ticket = await ticketsRepository.create({ order_id, user_id, event_id, qr_token });
+    const ticket = await ticketsRepository.create({
+      order_id,
+      user_id,
+      event_id,
+      qr_token,
+    });
 
     // Send notification and email asynchronously (don't block)
     this._sendConfirmations(ticket, user_id, event_id).catch((err) => {
-      console.error('[tickets] Post-purchase notification error:', err.message);
+      console.error("[tickets] Post-purchase notification error:", err.message);
     });
 
     return ticket;
@@ -30,9 +35,9 @@ class TicketsService {
       // In-app notification
       await notificationsService.create({
         user_id,
-        title: 'Ticket Confirmed!',
+        title: "Ticket Confirmed!",
         body: `Your ticket for "${event.title}" has been confirmed. Your QR token: ${ticket.qr_token.slice(0, 12)}...`,
-        type: 'ticket',
+        type: "ticket",
       });
 
       // Email notification
@@ -55,7 +60,7 @@ class TicketsService {
       tickets.map(async (t) => {
         const qrCodeDataUrl = await generateQRCodeDataURL(t.qr_token);
         return { ...t, qr_code_data_url: qrCodeDataUrl };
-      })
+      }),
     );
 
     return ticketsWithQR;
@@ -65,23 +70,23 @@ class TicketsService {
     const ticket = await ticketsRepository.findByQRToken(qr_token);
 
     if (!ticket) {
-      const err = new Error('Ticket not found');
+      const err = new Error("Ticket not found");
       err.status = 404;
       throw err;
     }
 
-    if (ticket.status === 'used') {
+    if (ticket.status === "used") {
       return {
         valid: false,
-        message: 'Ticket already used',
+        message: "Ticket already used",
         ticket,
       };
     }
 
-    if (ticket.status === 'cancelled') {
+    if (ticket.status === "cancelled") {
       return {
         valid: false,
-        message: 'Ticket is cancelled',
+        message: "Ticket is cancelled",
         ticket,
       };
     }
@@ -89,7 +94,7 @@ class TicketsService {
     const updated = await ticketsRepository.markAsUsed(ticket.id, verifier_id);
     return {
       valid: true,
-      message: 'Ticket verified successfully',
+      message: "Ticket verified successfully",
       ticket: updated,
     };
   }
