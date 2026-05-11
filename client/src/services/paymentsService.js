@@ -1,6 +1,10 @@
 import api from '../lib/api'
 
 export const paymentsService = {
+  createDemoPurchase: async (data) => {
+    return api.post('/payments/demo/purchase', data)
+  },
+
   createPayPalOrder: async (data) => {
     return api.post('/payments/paypal/create-order', data)
   },

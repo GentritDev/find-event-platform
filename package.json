@@ -21,5 +21,8 @@
     "imagekit": {
       "uuid": "^14.0.0"
     }
+  },
+  "dependencies": {
+    "@getbrevo/brevo": "^5.0.4"
   }
 }

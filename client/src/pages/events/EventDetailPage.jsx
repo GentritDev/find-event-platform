@@ -146,12 +146,17 @@ export default function EventDetailPage() {
                     >
                       Get Free Ticket
                     </button>
-                  ) : (
+                  ) : event.payment_method === 'paypal' || !event.payment_method ? (
                     <PayPalCheckout 
                       eventId={id} 
                       eventPrice={event.price_eur}
                       onSuccess={handlePaymentSuccess}
                     />
+                  ) : (
+                    <div className="flex items-center gap-2 bg-yellow-900/20 border border-yellow-800 rounded-lg p-3 text-yellow-400 text-sm">
+                      <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                      <span>This organizer doesn't accept online payments</span>
+                    </div>
                   )
                 ) : (
                   <button

@@ -1,31 +1,39 @@
 'use strict';
 
-const nodemailer = require('nodemailer');
 const env = require('./env');
 
-const transporter = nodemailer.createTransport({
-  host: env.BREVO_SMTP_HOST,
-  port: env.BREVO_SMTP_PORT,
-  secure: false,
-  auth: {
-    user: env.BREVO_SMTP_USER,
-    pass: env.BREVO_SMTP_PASS,
-  },
-});
-
 async function sendMail({ to, subject, html, text }) {
-  if (!env.BREVO_SMTP_USER || !env.BREVO_SMTP_PASS) {
-    console.warn('[mail] SMTP credentials not configured, skipping email send.');
+  if (!env.BREVO_API_KEY) {
+    console.warn('[mail] BREVO_API_KEY not configured, skipping email send.');
     return;
   }
 
-  return transporter.sendMail({
-    from: env.MAIL_FROM,
-    to,
-    subject,
-    html,
-    text,
-  });
+  try {
+    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'accept': 'application/json',
+        'api-key': env.BREVO_API_KEY,
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify({
+        sender: { email: env.MAIL_FROM },
+        to: [{ email: to }],
+        subject: subject,
+        htmlContent: html,
+        textContent: text
+      })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('[mail] Failed to send email via Brevo:', errorData);
+      return;
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('[mail] Exception when sending email:', error);
+  }
 }
 
 async function sendTicketConfirmationEmail({ to, userName, eventTitle, eventDate, qrToken, ticketId }) {

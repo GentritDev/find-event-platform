@@ -3,6 +3,15 @@
 const paymentsService = require('./payments.service');
 
 class PaymentsController {
+  async createDemoPurchase(req, res, next) {
+    try {
+      const result = await paymentsService.createDemoPurchase(req.user.id, req.body);
+      return res.status(201).json({ success: true, data: result });
+    } catch (err) {
+      next(err);
+    }
+  }
+
   async createOrder(req, res, next) {
     try {
       const result = await paymentsService.createPayPalOrder(req.user.id, req.body);

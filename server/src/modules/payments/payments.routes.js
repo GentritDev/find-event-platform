@@ -6,6 +6,10 @@ const authenticate = require('../../middlewares/auth');
 
 router.use(authenticate);
 
+router.post('/demo/purchase', (req, res, next) =>
+  paymentsController.createDemoPurchase(req, res, next)
+);
+
 router.post('/paypal/create-order', (req, res, next) =>
   paymentsController.createOrder(req, res, next)
 );
