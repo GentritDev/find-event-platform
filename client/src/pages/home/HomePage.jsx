@@ -11,18 +11,18 @@ import { ArrowRight, Zap, Shield, Globe } from "lucide-react";
 export default function HomePage() {
   const { user } = useAuth();
   const { data: featuredData, isLoading: isFeaturedLoading } = useQuery({
-    queryKey: ["events", "featured"],
-    queryFn: () => eventsService.getEvents({ status: "published", limit: 6 }),
+    queryKey: ["featured-events-v1"],
+    queryFn: () => eventsService.getEvents({ status: "published", limit: 3 }),
   });
 
   const { data: savedEventsData } = useQuery({
-    queryKey: ["saved-events"],
+    queryKey: ["saved-events-v1"],
     queryFn: savedEventsService.getSavedEvents,
     enabled: !!user,
   });
 
   const { data: ticketsData } = useQuery({
-    queryKey: ["my-tickets"],
+    queryKey: ["my-tickets-v1"],
     queryFn: ticketsService.getMyTickets,
     enabled: !!user,
   });
@@ -56,7 +56,7 @@ export default function HomePage() {
     .slice(0, 3);
 
   const { data: recommendedData, isLoading: isRecommendedLoading } = useQuery({
-    queryKey: ["events", "recommended", recommendedCategories],
+    queryKey: ["recommended-events-v1", recommendedCategories],
     queryFn: async () => {
       const results = await Promise.all(
         recommendedCategories.map((category) =>
@@ -76,9 +76,9 @@ export default function HomePage() {
   });
 
   const featuredEvents = featuredData?.data || [];
-  const recommendedEvents = (recommendedData?.data || []).filter(
-    (event) => !excludedEventIds.has(event.id),
-  );
+  const recommendedEvents = (recommendedData?.data || [])
+    .filter((event) => !excludedEventIds.has(event.id))
+    .slice(0, 3);
   const hasRecommendations = recommendedEvents.length > 0;
 
   return (
