@@ -10,6 +10,7 @@ import {
   Scan,
   Sun,
   Moon,
+  Bookmark,
 } from "lucide-react";
 import { useState } from "react";
 
@@ -65,6 +66,22 @@ export default function Navbar() {
               >
                 <Ticket className="w-4 h-4" />
                 My Tickets
+              </NavLink>
+            )}
+
+            {user && (
+              <NavLink
+                to="/saved-events"
+                className={({ isActive }) =>
+                  `px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5 ${
+                    isActive
+                      ? "bg-dark-700 text-accent-purple"
+                      : "text-slate-400 hover:text-slate-900 hover:bg-dark-700"
+                  }`
+                }
+              >
+                <Bookmark className="w-4 h-4" />
+                Saved
               </NavLink>
             )}
 
@@ -201,6 +218,15 @@ export default function Navbar() {
                 onClick={() => setMenuOpen(false)}
               >
                 My Tickets
+              </NavLink>
+            )}
+            {user && (
+              <NavLink
+                to="/saved-events"
+                className="block px-4 py-2 text-slate-300 hover:text-white hover:bg-dark-600 rounded-lg"
+                onClick={() => setMenuOpen(false)}
+              >
+                Saved Events
               </NavLink>
             )}
             {user && (user.role === "organizer" || user.role === "admin") && (

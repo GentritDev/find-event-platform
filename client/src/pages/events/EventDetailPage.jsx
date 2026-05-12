@@ -1,7 +1,8 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { eventsService } from "../../services/eventsService";
 import { paymentsService } from "../../services/paymentsService";
+import { savedEventsService } from "../../services/savedEventsService";
 import { ticketsService } from "../../services/ticketsService";
 import { useAuth } from "../../hooks/useAuth";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
@@ -32,6 +33,8 @@ export default function EventDetailPage() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
+  const queryClient = useQueryClient();
+
   const {
     data: event,
     isLoading,
@@ -46,6 +49,36 @@ export default function EventDetailPage() {
     queryFn: ticketsService.getMyTickets,
     enabled: !!user,
   });
+
+  const { data: savedEventsResponse = {} } = useQuery({
+    queryKey: ["saved-events"],
+    queryFn: savedEventsService.getSavedEvents,
+    enabled: !!user,
+  });
+
+  const savedEvents = savedEventsResponse.data || [];
+
+  const saveMutation = useMutation({
+    mutationFn: savedEventsService.saveEvent,
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["saved-events"] }),
+  });
+
+  const unsaveMutation = useMutation({
+    mutationFn: savedEventsService.unsaveEvent,
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["saved-events"] }),
+  });
+
+  const isSaved = savedEvents.some((item) => item.event_id === id);
+
+  const handleToggleSave = async () => {
+    if (isSaved) {
+      await unsaveMutation.mutateAsync(id);
+    } else {
+      await saveMutation.mutateAsync(id);
+    }
+  };
 
   const handlePaymentSuccess = (result) => {
     navigate("/payment/success", { state: { ticket: result.ticket } });
@@ -224,6 +257,28 @@ export default function EventDetailPage() {
                     Login to Purchase
                   </button>
                 )}
+
+                <button
+                  onClick={() => {
+                    if (!user) {
+                      navigate("/login");
+                      return;
+                    }
+
+                    handleToggleSave();
+                  }}
+                  className={`mt-4 w-full text-sm py-3 rounded-lg border transition-colors ${
+                    user && isSaved
+                      ? "saved-btn"
+                      : "border border-accent-purple bg-transparent text-accent-purple hover:bg-accent-purple/10 rounded-lg transition-colors"
+                  }`}
+                >
+                  {!user
+                    ? "Login to Save"
+                    : isSaved
+                      ? "Remove from Saved"
+                      : "Save Event"}
+                </button>
               </>
             )}
 

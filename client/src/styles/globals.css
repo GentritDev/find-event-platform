@@ -281,6 +281,17 @@ html.dark .text-slate-500 {
     background-color: var(--role-bar-track-bg);
   }
 
+  .saved-btn {
+    @apply border rounded-lg transition-colors;
+    background-color: rgb(var(--c600));
+    border-color: rgb(var(--c400));
+    color: var(--text-btn-secondary);
+  }
+
+  .saved-btn:hover {
+    background-color: rgb(var(--c500));
+  }
+
   .page-container {
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
