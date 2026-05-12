@@ -2,18 +2,84 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "../../hooks/useAuth";
 import { eventsService } from "../../services/eventsService";
+import { savedEventsService } from "../../services/savedEventsService";
+import { ticketsService } from "../../services/ticketsService";
 import EventCard from "../../components/shared/EventCard";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
 import { ArrowRight, Zap, Shield, Globe } from "lucide-react";
 
 export default function HomePage() {
   const { user } = useAuth();
-  const { data, isLoading } = useQuery({
+  const { data: featuredData, isLoading: isFeaturedLoading } = useQuery({
     queryKey: ["events", "featured"],
     queryFn: () => eventsService.getEvents({ status: "published", limit: 6 }),
   });
 
-  const events = data?.data || [];
+  const { data: savedEventsData } = useQuery({
+    queryKey: ["saved-events"],
+    queryFn: savedEventsService.getSavedEvents,
+    enabled: !!user,
+  });
+
+  const { data: ticketsData } = useQuery({
+    queryKey: ["my-tickets"],
+    queryFn: ticketsService.getMyTickets,
+    enabled: !!user,
+  });
+
+  const savedEvents = savedEventsData?.data || [];
+  const myTickets = ticketsData || [];
+
+  const excludedEventIds = new Set([
+    ...savedEvents.map((e) => e.event_id || e.id),
+    ...myTickets.map((t) => t.event_id),
+  ]);
+
+  const categoryCounts = {};
+
+  for (const event of savedEvents) {
+    if (event.category) {
+      categoryCounts[event.category] =
+        (categoryCounts[event.category] || 0) + 1;
+    }
+  }
+
+  for (const ticket of myTickets) {
+    if (ticket.event_category) {
+      categoryCounts[ticket.event_category] =
+        (categoryCounts[ticket.event_category] || 0) + 3;
+    }
+  }
+
+  const recommendedCategories = Object.keys(categoryCounts)
+    .sort((a, b) => categoryCounts[b] - categoryCounts[a])
+    .slice(0, 3);
+
+  const { data: recommendedData, isLoading: isRecommendedLoading } = useQuery({
+    queryKey: ["events", "recommended", recommendedCategories],
+    queryFn: async () => {
+      const results = await Promise.all(
+        recommendedCategories.map((category) =>
+          eventsService.getEvents({
+            status: "published",
+            category,
+            limit: 3,
+          }),
+        ),
+      );
+
+      return {
+        data: results.flatMap((r) => r.data),
+      };
+    },
+    enabled: recommendedCategories.length > 0,
+  });
+
+  const featuredEvents = featuredData?.data || [];
+  const recommendedEvents = (recommendedData?.data || []).filter(
+    (event) => !excludedEventIds.has(event.id),
+  );
+  const hasRecommendations = recommendedEvents.length > 0;
 
   return (
     <div className="bg-dark-900">
@@ -97,6 +163,47 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Recommended Events */}
+      {user && (isRecommendedLoading || hasRecommendations) && (
+        <section className="py-16 border-t border-dark-600">
+          <div className="page-container">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h2 className="text-2xl font-bold text-slate-100">
+                  Recommended for you
+                </h2>
+                <p className="text-slate-400 text-sm mt-1">
+                  Based on your saved events and purchased tickets.
+                </p>
+              </div>
+              {recommendedCategories.length > 0 && (
+                <span className="text-sm text-slate-500">
+                  Categories: {recommendedCategories.join(", ")}
+                </span>
+              )}
+            </div>
+
+            {isRecommendedLoading ? (
+              <LoadingSpinner size="lg" className="py-20" />
+            ) : recommendedEvents.length === 0 ? (
+              <div className="text-center py-20 text-slate-500">
+                <p className="text-5xl mb-4">✨</p>
+                <p className="text-lg">
+                  No recommendations yet. Save or book an event to get
+                  suggestions.
+                </p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {recommendedEvents.map((event) => (
+                  <EventCard key={event.id} event={event} />
+                ))}
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
       {/* Featured Events */}
       <section className="py-16">
         <div className="page-container">
@@ -117,16 +224,16 @@ export default function HomePage() {
             </Link>
           </div>
 
-          {isLoading ? (
+          {isFeaturedLoading ? (
             <LoadingSpinner size="lg" className="py-20" />
-          ) : events.length === 0 ? (
+          ) : featuredEvents.length === 0 ? (
             <div className="text-center py-20 text-slate-500">
               <p className="text-5xl mb-4">🎪</p>
               <p className="text-lg">No events yet. Check back soon!</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {events.map((event) => (
+              {featuredEvents.map((event) => (
                 <EventCard key={event.id} event={event} />
               ))}
             </div>

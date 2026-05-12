@@ -27,7 +27,7 @@ class TicketsRepository {
 
   async findByUserId(user_id) {
     const { rows } = await db.query(
-      `SELECT t.*, e.title AS event_title, e.start_at, e.end_at, e.location, e.cover_image_url
+      `SELECT t.*, e.title AS event_title, e.category AS event_category, e.start_at, e.end_at, e.location, e.cover_image_url
        FROM tickets t
        JOIN events e ON t.event_id = e.id
        WHERE t.user_id = $1
