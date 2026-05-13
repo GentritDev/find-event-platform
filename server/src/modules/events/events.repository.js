@@ -203,6 +203,14 @@ class EventsRepository {
       organizerId,
     ]);
   }
+
+  async hasTickets(eventId) {
+    const { rows } = await db.query(
+      "SELECT COUNT(*) FROM tickets WHERE event_id = $1",
+      [eventId],
+    );
+    return parseInt(rows[0].count, 10) > 0;
+  }
 }
 
 module.exports = new EventsRepository();

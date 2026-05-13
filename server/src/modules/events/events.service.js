@@ -110,9 +110,18 @@ class EventsService {
   }
 
   async deleteEvent(id, organizerId, role) {
+    const hasTickets = await eventsRepository.hasTickets(id);
+
+    if (hasTickets) {
+      const err = new Error("Cannot delete event with attendees");
+      err.status = 400;
+      throw err;
+    }
+
     if (role === "admin") {
       return eventsRepository.deleteById(id);
     }
+
     return eventsRepository.delete(id, organizerId);
   }
 }
