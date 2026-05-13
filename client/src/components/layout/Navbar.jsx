@@ -100,20 +100,23 @@ export default function Navbar() {
                   <LayoutDashboard className="w-4 h-4" />
                   Organizer
                 </NavLink>
-                <NavLink
-                  to="/scan"
-                  className={({ isActive }) =>
-                    `px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5 ${
-                      isActive
-                        ? "bg-dark-700 text-accent-purple"
-                        : "text-slate-400 hover:text-slate-900 hover:bg-dark-700"
-                    }`
-                  }
-                >
-                  <Scan className="w-4 h-4" />
-                  Scan
-                </NavLink>
               </>
+            )}
+
+            {user?.role === "organizer" && (
+              <NavLink
+                to="/scan"
+                className={({ isActive }) =>
+                  `px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5 ${
+                    isActive
+                      ? "bg-dark-700 text-accent-purple"
+                      : "text-slate-400 hover:text-slate-900 hover:bg-dark-700"
+                  }`
+                }
+              >
+                <Scan className="w-4 h-4" />
+                Scan
+              </NavLink>
             )}
 
             {user?.role === "admin" && (

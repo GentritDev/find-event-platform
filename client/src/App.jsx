@@ -69,7 +69,7 @@ export default function App() {
         <Route
           path="scan"
           element={
-            <ProtectedRoute roles={["organizer", "admin"]}>
+            <ProtectedRoute roles={["organizer"]}>
               <OrganizerScanPage />
             </ProtectedRoute>
           }
