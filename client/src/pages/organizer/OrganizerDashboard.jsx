@@ -99,7 +99,13 @@ function EventFormModal({ event, onClose, onSuccess, isAdmin, organizers }) {
       }
       onSuccess();
     } catch (err) {
-      toast.error(err.message);
+      if (err.fields && err.fields.length > 0) {
+        err.fields.forEach((f) => {
+          toast.error(`${f.field}: ${f.message}`);
+        });
+      } else {
+        toast.error(err.message);
+      }
     } finally {
       setSaving(false);
     }
@@ -258,9 +264,10 @@ function EventFormModal({ event, onClose, onSuccess, isAdmin, organizers }) {
                 <select
                   className="input"
                   value={form.organizer_id}
-                  onChange={(e) =>
-                    setForm({ ...form, organizer_id: e.target.value })
-                  }
+                  onChange={(e) => {
+                    setForm({ ...form, organizer_id: e.target.value });
+                    return;
+                  }}
                   required
                 >
                   <option value="">Select organizer</option>
