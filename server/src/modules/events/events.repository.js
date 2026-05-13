@@ -1,6 +1,6 @@
-'use strict';
+"use strict";
 
-const db = require('../../config/db');
+const db = require("../../config/db");
 
 class EventsRepository {
   async findAll({ page = 1, limit = 12, category, status, search }) {
@@ -18,10 +18,13 @@ class EventsRepository {
     }
     if (search) {
       params.push(`%${search}%`);
-      conditions.push(`(e.title ILIKE $${params.length} OR e.description ILIKE $${params.length})`);
+      conditions.push(
+        `(e.title ILIKE $${params.length} OR e.description ILIKE $${params.length})`,
+      );
     }
 
-    const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    const where =
+      conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
     params.push(limit, offset);
     const dataQuery = `
@@ -53,7 +56,7 @@ class EventsRepository {
        FROM events e
        JOIN users u ON e.organizer_id = u.id
        WHERE e.id = $1 LIMIT 1`,
-      [id]
+      [id],
     );
     return rows[0] || null;
   }
@@ -61,10 +64,12 @@ class EventsRepository {
   async findByOrganizer(organizerId, { page = 1, limit = 20 } = {}) {
     const offset = (page - 1) * limit;
     const { rows } = await db.query(
-      `SELECT * FROM events WHERE organizer_id = $1
-       ORDER BY created_at DESC
+      `SELECT e.*, u.full_name AS organizer_name FROM events e
+       JOIN users u ON e.organizer_id = u.id
+       WHERE e.organizer_id = $1
+       ORDER BY e.created_at DESC
        LIMIT $2 OFFSET $3`,
-      [organizerId, limit, offset]
+      [organizerId, limit, offset],
     );
     return rows;
   }
@@ -87,7 +92,7 @@ class EventsRepository {
         data.capacity,
         data.cover_image_url || null,
         data.status,
-      ]
+      ],
     );
     return rows[0];
   }
@@ -96,7 +101,18 @@ class EventsRepository {
     const fields = [];
     const params = [];
 
-    const allowed = ['title', 'description', 'category', 'location', 'start_at', 'end_at', 'price_eur', 'capacity', 'cover_image_url', 'status'];
+    const allowed = [
+      "title",
+      "description",
+      "category",
+      "location",
+      "start_at",
+      "end_at",
+      "price_eur",
+      "capacity",
+      "cover_image_url",
+      "status",
+    ];
     for (const key of allowed) {
       if (data[key] !== undefined) {
         params.push(data[key]);
@@ -111,10 +127,10 @@ class EventsRepository {
 
     params.push(id, organizerId);
     const { rows } = await db.query(
-      `UPDATE events SET ${fields.join(', ')}
+      `UPDATE events SET ${fields.join(", ")}
        WHERE id = $${params.length - 1} AND organizer_id = $${params.length}
        RETURNING *`,
-      params
+      params,
     );
     return rows[0] || null;
   }
@@ -123,7 +139,18 @@ class EventsRepository {
     const fields = [];
     const params = [];
 
-    const allowed = ['title', 'description', 'category', 'location', 'start_at', 'end_at', 'price_eur', 'capacity', 'cover_image_url', 'status'];
+    const allowed = [
+      "title",
+      "description",
+      "category",
+      "location",
+      "start_at",
+      "end_at",
+      "price_eur",
+      "capacity",
+      "cover_image_url",
+      "status",
+    ];
     for (const key of allowed) {
       if (data[key] !== undefined) {
         params.push(data[key]);
@@ -138,10 +165,10 @@ class EventsRepository {
 
     params.push(id);
     const { rows } = await db.query(
-      `UPDATE events SET ${fields.join(', ')}
+      `UPDATE events SET ${fields.join(", ")}
        WHERE id = $${params.length}
        RETURNING *`,
-      params
+      params,
     );
     return rows[0] || null;
   }
@@ -161,13 +188,20 @@ class EventsRepository {
 
   async incrementTicketsSold(eventId, count = 1) {
     await db.query(
-      'UPDATE events SET tickets_sold = tickets_sold + $1 WHERE id = $2',
-      [count, eventId]
+      "UPDATE events SET tickets_sold = tickets_sold + $1 WHERE id = $2",
+      [count, eventId],
     );
   }
 
+  async deleteById(id) {
+    await db.query("DELETE FROM events WHERE id = $1", [id]);
+  }
+
   async delete(id, organizerId) {
-    await db.query('DELETE FROM events WHERE id = $1 AND organizer_id = $2', [id, organizerId]);
+    await db.query("DELETE FROM events WHERE id = $1 AND organizer_id = $2", [
+      id,
+      organizerId,
+    ]);
   }
 }
 

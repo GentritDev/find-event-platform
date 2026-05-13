@@ -1,6 +1,6 @@
-'use strict';
+"use strict";
 
-const adminService = require('./admin.service');
+const adminService = require("./admin.service");
 
 class AdminController {
   async getDashboard(req, res, next) {
@@ -23,7 +23,10 @@ class AdminController {
 
   async updateUserRole(req, res, next) {
     try {
-      const user = await adminService.updateUserRole(req.params.id, req.body.role);
+      const user = await adminService.updateUserRole(
+        req.params.id,
+        req.body.role,
+      );
       return res.json({ success: true, data: user });
     } catch (err) {
       next(err);
@@ -43,6 +46,15 @@ class AdminController {
     try {
       const stats = await adminService.getRevenueStats();
       return res.json({ success: true, data: stats });
+    } catch (err) {
+      next(err);
+    }
+  }
+
+  async getOrganizers(req, res, next) {
+    try {
+      const organizers = await adminService.getOrganizers();
+      return res.json({ success: true, data: organizers });
     } catch (err) {
       next(err);
     }

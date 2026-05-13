@@ -1,6 +1,6 @@
-'use strict';
+"use strict";
 
-const eventsService = require('./events.service');
+const eventsService = require("./events.service");
 
 class EventsController {
   async listEvents(req, res, next) {
@@ -23,7 +23,11 @@ class EventsController {
 
   async getOrganizerEvents(req, res, next) {
     try {
-      const events = await eventsService.getOrganizerEvents(req.user.id, req.query);
+      const events = await eventsService.getOrganizerEvents(
+        req.user.id,
+        req.query,
+        req.user.role,
+      );
       return res.json({ success: true, data: events });
     } catch (err) {
       next(err);
@@ -32,7 +36,11 @@ class EventsController {
 
   async createEvent(req, res, next) {
     try {
-      const event = await eventsService.createEvent(req.user.id, req.body);
+      const event = await eventsService.createEvent(
+        req.user.id,
+        req.body,
+        req.user.role,
+      );
       return res.status(201).json({ success: true, data: event });
     } catch (err) {
       next(err);
@@ -41,7 +49,12 @@ class EventsController {
 
   async updateEvent(req, res, next) {
     try {
-      const event = await eventsService.updateEvent(req.params.id, req.user.id, req.body, req.user.role);
+      const event = await eventsService.updateEvent(
+        req.params.id,
+        req.user.id,
+        req.body,
+        req.user.role,
+      );
       return res.json({ success: true, data: event });
     } catch (err) {
       next(err);
@@ -50,7 +63,11 @@ class EventsController {
 
   async publishEvent(req, res, next) {
     try {
-      const event = await eventsService.publishEvent(req.params.id, req.user.id, req.user.role);
+      const event = await eventsService.publishEvent(
+        req.params.id,
+        req.user.id,
+        req.user.role,
+      );
       return res.json({ success: true, data: event });
     } catch (err) {
       next(err);
@@ -59,7 +76,11 @@ class EventsController {
 
   async cancelEvent(req, res, next) {
     try {
-      const event = await eventsService.cancelEvent(req.params.id, req.user.id, req.user.role);
+      const event = await eventsService.cancelEvent(
+        req.params.id,
+        req.user.id,
+        req.user.role,
+      );
       return res.json({ success: true, data: event });
     } catch (err) {
       next(err);
@@ -68,8 +89,12 @@ class EventsController {
 
   async deleteEvent(req, res, next) {
     try {
-      await eventsService.deleteEvent(req.params.id, req.user.id);
-      return res.json({ success: true, message: 'Event deleted' });
+      await eventsService.deleteEvent(
+        req.params.id,
+        req.user.id,
+        req.user.role,
+      );
+      return res.json({ success: true, message: "Event deleted" });
     } catch (err) {
       next(err);
     }
