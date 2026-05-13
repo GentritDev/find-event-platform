@@ -67,6 +67,8 @@ const eventQuerySchema = z.object({
   category: z.string().optional(),
   status: z.enum(["draft", "published", "cancelled"]).optional(),
   search: z.string().optional(),
+  location: z.string().optional(),
+  sort: z.string().optional(),
 });
 
 module.exports = { createEventSchema, updateEventSchema, eventQuerySchema };

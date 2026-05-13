@@ -3,7 +3,15 @@
 const db = require("../../config/db");
 
 class EventsRepository {
-  async findAll({ page = 1, limit = 12, category, status, search }) {
+  async findAll({
+    page = 1,
+    limit = 12,
+    category,
+    status,
+    location,
+    search,
+    sort,
+  }) {
     const offset = (page - 1) * limit;
     const conditions = [];
     const params = [];
@@ -16,6 +24,10 @@ class EventsRepository {
       params.push(status);
       conditions.push(`e.status = $${params.length}`);
     }
+    if (location) {
+      params.push(`%${location}%`);
+      conditions.push(`e.location ILIKE $${params.length}`);
+    }
     if (search) {
       params.push(`%${search}%`);
       conditions.push(
@@ -26,13 +38,27 @@ class EventsRepository {
     const where =
       conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
 
+    let orderBy = "e.start_at ASC";
+
+    if (sort === "date_desc") {
+      orderBy = "e.start_at DESC";
+    }
+
+    if (sort === "price_asc") {
+      orderBy = "e.price_eur ASC";
+    }
+
+    if (sort === "price_desc") {
+      orderBy = "e.price_eur DESC";
+    }
+
     params.push(limit, offset);
     const dataQuery = `
       SELECT e.*, u.full_name AS organizer_name
       FROM events e
       JOIN users u ON e.organizer_id = u.id
       ${where}
-      ORDER BY e.start_at ASC
+      ORDER BY ${orderBy}
       LIMIT $${params.length - 1} OFFSET $${params.length}
     `;
 
