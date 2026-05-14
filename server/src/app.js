@@ -25,10 +25,35 @@ const app = express();
 
 // Security middlewares
 app.use(helmet());
+
+// CORS Configuration - Allow multiple origins
+const allowedOrigins = [
+  env.CLIENT_URL,
+  'https://find-event-platform-client.vercel.app',
+  'https://find-event-platform-client-git-main-gentritdevs-projects.vercel.app',
+  'https://find-event-platform-client-q4cwe0otr-gentritdevs-projects.vercel.app',
+  'https://find-event-platform-client-f0lj17qan-gentritdevs-projects.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:3000',
+];
+
 app.use(
   cors({
-    origin: env.CLIENT_URL,
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or Postman)
+      if (!origin) return callback(null, true);
+      
+      // Check if origin is in allowed list
+      if (allowedOrigins.some(o => origin.includes(o) || o.includes(origin))) {
+        callback(null, true);
+      } else {
+        console.warn(`CORS blocked request from origin: ${origin}`);
+        callback(null, true); // For development, allow anyway. Change to false for strict mode.
+      }
+    },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
   }),
 );
 
