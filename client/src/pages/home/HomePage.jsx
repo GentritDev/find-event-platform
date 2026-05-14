@@ -85,7 +85,6 @@ export default function HomePage() {
     <div className="bg-dark-900">
       {/* Hero Section */}
       <section className="relative overflow-hidden py-24 lg:py-32">
-        {/* Background gradient */}
         <div className="absolute inset-0 bg-gradient-to-br from-accent-purple/10 via-dark-900 to-dark-900" />
         <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-accent-purple/5 rounded-full blur-3xl" />
 
@@ -130,6 +129,11 @@ export default function HomePage() {
       {/* Features */}
       <section className="py-16 border-t border-dark-600">
         <div className="page-container">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-slate-100 mb-3">
+              Why Choose FindEvents?
+            </h2>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[
               {
