@@ -1,7 +1,5 @@
 import axios from "axios";
 
-import axios from "axios";
-
 // Get API URL from environment variable, with proper fallbacks
 const getApiUrl = () => {
   // Production (Vercel): Use environment variable
