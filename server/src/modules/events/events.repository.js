@@ -54,13 +54,27 @@ class EventsRepository {
 
     params.push(limit, offset);
     const dataQuery = `
-      SELECT e.*, u.full_name AS organizer_name
-      FROM events e
-      JOIN users u ON e.organizer_id = u.id
-      ${where}
-      ORDER BY ${orderBy}
-      LIMIT $${params.length - 1} OFFSET $${params.length}
-    `;
+  SELECT
+    e.*,
+    u.full_name AS organizer_name,
+
+    (
+      SELECT COUNT(*)
+      FROM tickets t
+      WHERE t.event_id = e.id
+      AND t.status = 'active'
+    ) AS active_tickets
+
+  FROM events e
+  JOIN users u ON e.organizer_id = u.id
+
+  ${where}
+
+  ORDER BY ${orderBy}
+
+  LIMIT $${params.length - 1}
+  OFFSET $${params.length}
+`;
 
     const countParams = params.slice(0, params.length - 2);
     const countQuery = `SELECT COUNT(*) FROM events e ${where}`;
@@ -90,11 +104,30 @@ class EventsRepository {
   async findByOrganizer(organizerId, { page = 1, limit = 20 } = {}) {
     const offset = (page - 1) * limit;
     const { rows } = await db.query(
-      `SELECT e.*, u.full_name AS organizer_name FROM events e
-       JOIN users u ON e.organizer_id = u.id
-       WHERE e.organizer_id = $1
-       ORDER BY e.created_at DESC
-       LIMIT $2 OFFSET $3`,
+      `
+  SELECT
+    e.*,
+    u.full_name AS organizer_name,
+
+   
+
+    (
+      SELECT COUNT(*)
+      FROM tickets t
+      WHERE t.event_id = e.id
+      AND t.status = 'active'
+    ) AS active_tickets
+
+  FROM events e
+  JOIN users u ON e.organizer_id = u.id
+
+  WHERE e.organizer_id = $1
+
+  ORDER BY e.created_at DESC
+
+  LIMIT $2
+  OFFSET $3
+  `,
       [organizerId, limit, offset],
     );
     return rows;
