@@ -18,6 +18,7 @@ const ticketsRoutes = require("./modules/tickets/tickets.routes");
 const uploadsRoutes = require("./modules/uploads/uploads.routes");
 const notificationsRoutes = require("./modules/notifications/notifications.routes");
 const adminRoutes = require("./modules/admin/admin.routes");
+const statsRoutes = require("./modules/stats/stats.routes");
 const savedEventsRoutes = require("./modules/savedEvents/savedEvents.routes");
 
 const app = express();
@@ -63,6 +64,7 @@ app.use("/api/uploads", uploadsRoutes);
 app.use("/api/notifications", notificationsRoutes);
 app.use("/api/saved-events", savedEventsRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/stats", statsRoutes);
 
 // 404 handler
 app.use((req, res) => {
