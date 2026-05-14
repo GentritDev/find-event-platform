@@ -13,7 +13,6 @@ export const eventsService = {
 
   getOrganizerEvents: async () => {
     const res = await api.get("/events/organizer/mine");
-    // Handle both { success: true, data: [...] } and direct array responses
     if (Array.isArray(res)) {
       return res;
     }
@@ -25,7 +24,6 @@ export const eventsService = {
 
   getOrganizers: async () => {
     const res = await api.get("/admin/organizers");
-    // Handle both { success: true, data: [...] } and direct array responses
     if (Array.isArray(res)) {
       return res;
     }
