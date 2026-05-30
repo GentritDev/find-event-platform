@@ -12,6 +12,7 @@ import OrganizerScanPage from "./pages/organizer/OrganizerScanPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import PaymentSuccessPage from "./pages/payment/PaymentSuccessPage";
 import PaymentCancelPage from "./pages/payment/PaymentCancelPage";
+import OnlineHelp from './components/help/OnlineHelp';
 import SavedEventsPage from "./pages/saved/SavedEventsPage";
 
 function ProtectedRoute({ children, roles }) {
@@ -29,61 +30,64 @@ function ProtectedRoute({ children, roles }) {
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Layout />}>
-        <Route index element={<HomePage />} />
-        <Route path="events" element={<EventsPage />} />
-        <Route path="events/:id" element={<EventDetailPage />} />
-        <Route path="login" element={<LoginPage />} />
-        <Route path="register" element={<RegisterPage />} />
-        <Route path="payment/success" element={<PaymentSuccessPage />} />
-        <Route path="payment/cancel" element={<PaymentCancelPage />} />
+    <> {/* <--- Kjo u shtua këtu */}
+      <Routes>
+        <Route path="/" element={<Layout />}>
+          <Route index element={<HomePage />} />
+          <Route path="events" element={<EventsPage />} />
+          <Route path="events/:id" element={<EventDetailPage />} />
+          <Route path="login" element={<LoginPage />} />
+          <Route path="register" element={<RegisterPage />} />
+          <Route path="payment/success" element={<PaymentSuccessPage />} />
+          <Route path="payment/cancel" element={<PaymentCancelPage />} />
 
-        <Route
-          path="tickets/my"
-          element={
-            <ProtectedRoute>
-              <MyTicketsPage />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="tickets/my"
+            element={
+              <ProtectedRoute>
+                <MyTicketsPage />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="saved-events"
-          element={
-            <ProtectedRoute>
-              <SavedEventsPage />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="saved-events"
+            element={
+              <ProtectedRoute>
+                <SavedEventsPage />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="dashboard/organizer"
-          element={
-            <ProtectedRoute roles={["organizer", "admin"]}>
-              <OrganizerDashboard />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="dashboard/organizer"
+            element={
+              <ProtectedRoute roles={["organizer", "admin"]}>
+                <OrganizerDashboard />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="scan"
-          element={
-            <ProtectedRoute roles={["organizer"]}>
-              <OrganizerScanPage />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="scan"
+            element={
+              <ProtectedRoute roles={["organizer"]}>
+                <OrganizerScanPage />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          path="dashboard/admin"
-          element={
-            <ProtectedRoute roles={["admin"]}>
-              <AdminDashboard />
-            </ProtectedRoute>
-          }
-        />
-      </Route>
-    </Routes>
+          <Route
+            path="dashboard/admin"
+            element={
+              <ProtectedRoute roles={["admin"]}>
+                <AdminDashboard />
+              </ProtectedRoute>
+            }
+          />
+        </Route>
+      </Routes>
+      <OnlineHelp />
+    </> 
   );
 }

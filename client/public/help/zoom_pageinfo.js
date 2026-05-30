@@ -1,0 +1,18 @@
+pageinfo = [[0,0,0,0,null],
+	[0,0,0,0,null],
+	[0,0,0,0,null],
+	[0,0,0,0,null],
+	[0,0,0,0,null],
+	[0,0,0,0,null],
+	[0,0,0,0,null],
+	[0,0,0,0,null],
+	[0,0,0,0,null]];
+pagedata = [ ["./admin_dashboard.html","Admin Dashboard","Admin Dashboard Top Previous TEXT SCRAMBLING in TRIAL VERSION OUTPUT! In evaluation mode, Help+Manual will scramble individual characters in rando...",""],
+["./events_list.html","Events List","Events List Top Previous Next TEXT SCRAMBLING in TRIAL VERSION OUTPUT! In evaluation mode, Help+Manual will scramble individual characters in rand...",""],
+["./event_detail.html","Event Detail","Event Detail Top Previous Next TEXT SCRAMBLING in TRIAL VERSION OUTPUT! In evaluation mode, Help+Manual will scramble individual characters in ran...",""],
+["./home_page.html","Home Page","Home Page Top Next TEXT SCRAMBLING in TRIAL VERSION OUTPUT! In evaluation mode, Help+Manual will scramble individual characters in random words in...",""],
+["./login.html","Login","Login Top Previous Next TEXT SCRAMBLING in TRIAL VERSION OUTPUT! In evaluation mode, Help+Manual will scramble individual characters in random wor...",""],
+["./my_tickets.html","My Tickets","My Tickets Top Previous Next TEXT SCRAMBLING in TRIAL VERSION OUTPUT! In evaluation mode, Help+Manual will scramble individual characters in rando...",""],
+["./organizer_dashboard.html","Organizer Dashboard","Organizer Dashboard Top Previous Next TEXT SCRAMBLING in TRIAL VERSION OUTPUT! In evaluation mode, Help+Manual will scramble individual characters...",""],
+["./register.html","Register","Register Top Previous Next TEXT SCRAMBLING in TRIAL VERSION OUTPUT! In evaluation mode, Help+Manual will scramble individual characters in random ...",""],
+["./scan_qr.html","Scan QR","Scan QR Top Previous Next TEXT SCRAMBLING in TRIAL VERSION OUTPUT! In evaluation mode, Help+Manual will scramble individual characters in random w...",""]];
