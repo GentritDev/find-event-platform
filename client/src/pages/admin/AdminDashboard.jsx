@@ -68,8 +68,12 @@ export default function AdminDashboard() {
               },
               {
                 icon: <Calendar className="w-5 h-5" />,
-                label: "Published Events",
-                value: getEventCount("published"),
+                label: "Total Events",
+                value:
+                  stats?.events?.reduce(
+                    (s, e) => s + parseInt(e.count, 10),
+                    0,
+                  ) || 0,
                 color: "text-green-400",
               },
               {

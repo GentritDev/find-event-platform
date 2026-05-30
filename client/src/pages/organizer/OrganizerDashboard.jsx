@@ -5,7 +5,27 @@ import { uploadsService } from "../../services/uploadsService";
 import { useAuth } from "../../hooks/useAuth";
 import toast from "react-hot-toast";
 import LoadingSpinner from "../../components/shared/LoadingSpinner";
-import { Plus, Edit, Trash2, Eye, Send, XCircle, Upload } from "lucide-react";
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Eye,
+  Send,
+  XCircle,
+  Upload,
+  Calendar,
+  DollarSign,
+  BarChart2,
+} from "lucide-react";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+import { statsService } from "../../services/statsService";
 
 const CATEGORIES = [
   "Music",
@@ -339,6 +359,36 @@ export default function OrganizerDashboard() {
     enabled: isAdmin,
   });
 
+  const { data: revenue } = useQuery({
+    queryKey: ["stats-revenue"],
+    queryFn: statsService.getRevenue,
+  });
+
+  const totalRevenue =
+    revenue?.total_revenue ??
+    events.reduce((sum, event) => sum + Number(event.revenue || 0), 0);
+
+  const totalActiveTickets = events.reduce(
+    (sum, e) => sum + Number(e.active_tickets || 0),
+    0,
+  );
+  const { data: chartData } = useQuery({
+    queryKey: ["stats-revenue-chart"],
+    queryFn: statsService.getRevenueChart,
+  });
+
+  const rawChartData = chartData ?? [];
+
+  const formattedChartData = Array.isArray(rawChartData)
+    ? rawChartData.map((d) => ({
+        date: new Date(d.date).toLocaleDateString("en-GB"),
+        revenue: Number(d.revenue),
+      }))
+    : [];
+
+  console.log("chartData raw:", chartData);
+  console.log("formatted:", formattedChartData);
+
   const deleteMutation = useMutation({
     mutationFn: eventsService.deleteEvent,
     onSuccess: () => {
@@ -389,27 +439,60 @@ export default function OrganizerDashboard() {
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {[
-          { label: "Total Events", value: events.length },
           {
+            icon: <Calendar className="w-5 h-5" />,
+            label: "Total Events",
+            value: events.length,
+            color: "text-blue-400",
+          },
+
+          {
+            icon: <Calendar className="w-5 h-5" />,
             label: "Published",
             value: events.filter((e) => e.status === "published").length,
+            color: "text-green-400",
           },
           {
-            label: "Draft",
-            value: events.filter((e) => e.status === "draft").length,
+            icon: <BarChart2 className="w-5 h-5" />,
+            label: "Active Tickets",
+            value: totalActiveTickets,
+            color: "text-accent-purple-light",
           },
           {
-            label: "Total Capacity",
-            value: events.reduce((s, e) => s + (e.capacity || 0), 0),
+            icon: <DollarSign className="w-5 h-5" />,
+            label: "Revenue",
+            value: `€${totalRevenue.toFixed(2)}`,
+            color: "text-yellow-400",
           },
         ].map((stat) => (
           <div key={stat.label} className="card p-4">
-            <div className="text-2xl font-bold text-accent-purple-light">
+            <div className={`${stat.color} mb-2`}>{stat.icon}</div>
+            <div className={`text-2xl font-bold ${stat.color}`}>
               {stat.value}
             </div>
             <div className="text-sm text-slate-400 mt-0.5">{stat.label}</div>
           </div>
         ))}
+      </div>
+
+      <div className="card p-5 mb-8">
+        <h2 className="text-slate-200 font-semibold mb-4">Revenue Over Time</h2>
+
+        <div className="h-64">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={formattedChartData}>
+              <XAxis dataKey="date" />
+              <YAxis />
+              <Tooltip />
+              <Line
+                type="monotone"
+                dataKey="revenue"
+                stroke="#a855f7"
+                strokeWidth={2}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
       </div>
 
       {isLoading ? (
